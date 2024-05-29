@@ -14,18 +14,20 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.resultaggregator;
+package it.cnr.anac.transparency.resultaggregator.client;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.geojson.FeatureCollection;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 
-@EnableFeignClients
-@SpringBootApplication
-public class ResultAggregatorApplication {
+/**
+ * Client feign per il prelevamento delle informazioni geografiche dal public-sites-service.
+ *
+ * @author Cristian Lucchesi
+ */
+@FeignClient(name = "public-sites-service-client", url = "${transparency.public-sites-service.url}")
+public interface PublicSitesServiceClient {
 
-  public static void main(String[] args) {
-    SpringApplication.run(ResultAggregatorApplication.class, args);
-  }
-
+  @GetMapping("/v1/geo/geojson")
+  abstract FeatureCollection geoJson();
 }
