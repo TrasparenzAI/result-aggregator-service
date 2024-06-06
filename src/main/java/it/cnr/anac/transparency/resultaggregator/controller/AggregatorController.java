@@ -28,22 +28,21 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import it.cnr.anac.transparency.resultaggregator.client.PublicSitesServiceClient;
+import it.cnr.anac.transparency.resultaggregator.service.AggreatorService;
 import it.cnr.anac.transparency.resultaggregator.v1.ApiRoutes;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 @Tag(
     name = "Aggregator Controller", 
     description = "Gestione delle informazioni dei risultati aggregati di validazione dei siti delle PA")
-  @Slf4j
-  @RequiredArgsConstructor
-  @RestController
-  @RequestMapping(ApiRoutes.BASE_PATH + "/aggregator")
+@Slf4j
+@RequiredArgsConstructor
+@RestController
+@RequestMapping(ApiRoutes.BASE_PATH + "/aggregator")
 public class AggregatorController {
 
-  private final PublicSitesServiceClient pssClient;
+  private final AggreatorService aggregatorService;
 
   @Operation(
       summary = "Visualizzazione dei risultati di validazione presenti nel sistema, filtrabili "
@@ -55,10 +54,11 @@ public class AggregatorController {
   })
   @GetMapping(ApiRoutes.LIST)
   public ResponseEntity<Void> result(
-      @RequestParam("workflowId") Optional<String> workflowId) {
-    log.info("Estrazione dati per workflowId = {}", workflowId);
-    val geoJson = pssClient.geoJson();
-    log.info("geoJson scaricato da public-sites-service, contiene {} elementi", geoJson.getFeatures().size());
+      @RequestParam("workflowId") String workflowId, 
+      @RequestParam("ruleName") Optional<String> ruleName) {
+    log.info("Estrazione dati per workflowId = {}, ruleName = {}", workflowId, ruleName);
+    aggregatorService.aggregatedFeatureCollection(workflowId, ruleName);
     return ResponseEntity.ok().build();
   }
+
 }
