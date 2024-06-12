@@ -14,12 +14,16 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.resultaggregator.controller;
+package it.cnr.anac.transparency.resultaggregator.v1;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.geojson.Feature;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,8 +33,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.cnr.anac.transparency.resultaggregator.service.AggreatorService;
-import it.cnr.anac.transparency.resultaggregator.v1.ApiRoutes;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 @Tag(
@@ -53,12 +57,21 @@ public class AggregatorController {
           description = "Restituita una pagina della lista risultati di validazione presenti.")
   })
   @GetMapping(ApiRoutes.LIST)
-  public ResponseEntity<Void> result(
+  public ResponseEntity<List<Feature>> result(
       @RequestParam("workflowId") String workflowId, 
       @RequestParam("ruleName") Optional<String> ruleName) {
     log.info("Estrazione dati per workflowId = {}, ruleName = {}", workflowId, ruleName);
-    aggregatorService.aggregatedFeatureCollection(workflowId, ruleName);
-    return ResponseEntity.ok().build();
+    val featureCollection = aggregatorService.aggregatedFeatureCollection(workflowId, ruleName);
+    
+    return ResponseEntity.ok(featureCollection.getFeatures().stream().limit(2).collect(Collectors.toList()));
   }
 
+  @PostMapping(ApiRoutes.LIST)
+  public ResponseEntity<Void> saveResults(
+      @RequestParam("workflowId") String workflowId, 
+      @RequestParam("ruleName") Optional<String> ruleName) {
+    val featureCollection = aggregatorService.aggregatedFeatureCollection(workflowId, ruleName);
+    aggregatorService.save(workflowId, ruleName, featureCollection);
+    return ResponseEntity.ok().build();
+  }
 }

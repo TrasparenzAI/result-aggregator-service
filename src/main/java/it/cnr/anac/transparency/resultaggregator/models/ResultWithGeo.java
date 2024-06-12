@@ -16,6 +16,10 @@
  */
 package it.cnr.anac.transparency.resultaggregator.models;
 
+import java.sql.Types;
+
+import org.hibernate.annotations.JdbcTypeCode;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
@@ -39,7 +43,10 @@ public class ResultWithGeo extends MutableModel {
   // "6d7e4bd7-a890-439d-9dc7-f9f3f515d8b5"
   private String workflowId;
 
+  private String ruleName;
+
   @Lob
+  @JdbcTypeCode(Types.VARBINARY)
   private byte[] geoJson;
 
 }
