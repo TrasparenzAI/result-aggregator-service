@@ -16,11 +16,12 @@
  */
 package it.cnr.anac.transparency.resultaggregator.service;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 
 import it.cnr.anac.transparency.resultaggregator.models.ResultWithGeo;
+import jakarta.transaction.Transactional;
 
 /*
  * Copyright (C) 2024 Consiglio Nazionale delle Ricerche
@@ -40,8 +41,9 @@ import it.cnr.anac.transparency.resultaggregator.models.ResultWithGeo;
  */
 public interface ResultWithGeoRepository extends CrudRepository<ResultWithGeo, Long>{
 
-  List<ResultWithGeo> findByWorkflowIdAndRuleName(String workflowId, String ruleName);
+  Optional<ResultWithGeo> findByWorkflowIdAndRuleName(String workflowId, String ruleName);
   
+  @Transactional
   Long deleteByWorkflowIdAndRuleName(String workflowId, String ruleName); 
 
 }

@@ -16,23 +16,35 @@
  */
 package it.cnr.anac.transparency.resultaggregator.v1;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.geojson.Feature;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.cnr.anac.transparency.resultaggregator.service.AggreatorService;
+import it.cnr.anac.transparency.resultaggregator.service.ResultWithGeoRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -47,31 +59,103 @@ import lombok.extern.slf4j.Slf4j;
 public class AggregatorController {
 
   private final AggreatorService aggregatorService;
+  private final ResultWithGeoRepository aggregatorRepo;
 
   @Operation(
       summary = "Visualizzazione dei risultati di validazione presenti nel sistema, filtrabili "
           + "utilizzando alcuni parametri.",
-      description = "Le informazioni sono restituite in formato geoJson.")
+          description = "Le informazioniono restituite in formato geoJson.")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", 
           description = "Restituita una pagina della lista risultati di validazione presenti.")
   })
-  @GetMapping(ApiRoutes.LIST)
-  public ResponseEntity<List<Feature>> result(
+  @GetMapping(ApiRoutes.LIST + "/nocache")
+  public ResponseEntity<List<Feature>> resultNoCache(
       @RequestParam("workflowId") String workflowId, 
       @RequestParam("ruleName") Optional<String> ruleName) {
-    log.info("Estrazione dati per workflowId = {}, ruleName = {}", workflowId, ruleName);
+    log.info("Estrazione dinamica dei dati per workflowId = {}, ruleName = {}", workflowId, ruleName);
     val featureCollection = aggregatorService.aggregatedFeatureCollection(workflowId, ruleName);
-    
+
     return ResponseEntity.ok(featureCollection.getFeatures().stream().limit(2).collect(Collectors.toList()));
   }
 
-  @PostMapping(ApiRoutes.LIST)
-  public ResponseEntity<Void> saveResults(
+  @GetMapping(value = ApiRoutes.LIST, produces = MediaType.APPLICATION_JSON_VALUE)
+  public @ResponseBody byte[] result(
       @RequestParam("workflowId") String workflowId, 
-      @RequestParam("ruleName") Optional<String> ruleName) {
+      @RequestParam("ruleName") String ruleName) {
+    log.info("Estrazione dati per workflowId = {}, ruleName = {}", workflowId, ruleName);
+    val result = aggregatorRepo.findByWorkflowIdAndRuleName(workflowId, ruleName)
+        .orElseThrow(() -> new EntityNotFoundException(
+            String.format("Result non trovato con workflowId = %s e ruleName = %s", 
+                workflowId, ruleName)));
+    return result.getGeoJson();
+  }
+
+  @GetMapping(value = ApiRoutes.LIST + "/gzip", 
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public @ResponseBody byte[] resultJsonb(
+      @RequestParam("workflowId") String workflowId, 
+      @RequestParam("ruleName") String ruleName, HttpServletResponse response) throws IOException {
+    log.info("Estrazione dati per workflowId = {}, ruleName = {}", workflowId, ruleName);
+    response.setHeader("Content-Encoding", "gzip");
+    val result = aggregatorRepo.findByWorkflowIdAndRuleName(workflowId, ruleName)
+        .orElseThrow(() -> new EntityNotFoundException(
+            String.format("Result non trovato con workflowId = %s e ruleName = %s", 
+                workflowId, ruleName)));
+    return aggregatorService.gzip(result.getGeoJson());
+  }
+
+  @Operation(
+      summary = "Creazione di un risultato aggregato di validazione.",
+      description = "Questa è la creazione di risultato aggregato di validazione.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Risultato creato correttamente."),
+      @ApiResponse(responseCode = "400", description = "Validazione delle informazioni obbligatorie fallita.",
+      content = @Content)
+  })
+  @PutMapping(ApiRoutes.CREATE)
+  public ResponseEntity<Void> create(
+      @RequestParam("workflowId") String workflowId, 
+      @RequestParam("ruleName") Optional<String> ruleName) throws JsonProcessingException {
     val featureCollection = aggregatorService.aggregatedFeatureCollection(workflowId, ruleName);
     aggregatorService.save(workflowId, ruleName, featureCollection);
+    return ResponseEntity.ok().build();
+  }
+
+  @Operation(
+      summary = "Eliminazione di un risultato aggregato di validazione.",
+      description = "Eliminazione definitiva un risultato aggregato di validazione.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Risultato eliminato correttamente")
+  })
+  @DeleteMapping(ApiRoutes.DELETE)
+  ResponseEntity<Void> delete(
+      @NotNull @PathVariable("id") Long id) {
+    log.debug("ResultController::delete id = {}", id);
+    val result = aggregatorRepo.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Result non trovato con id = " + id));
+    aggregatorRepo.delete(result);
+    log.info("Eliminato definitivamente result {}", result);
+    return ResponseEntity.ok().build();
+  }
+
+  @Operation(
+      summary = "Eliminazione di un risultato aggregato di validazione.",
+      description = "Eliminazione definitiva un risultato aggregato di validazione.")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Risultato eliminato correttamente")
+  })
+  @DeleteMapping(ApiRoutes.LIST)
+  ResponseEntity<Void> deleteByWorkflowIdAndRuleName(
+      @RequestParam("workflowId") String workflowId, 
+      @RequestParam("ruleName") String ruleName) {
+    log.debug("ResultController::delete by workflowId {} and ruleName {}", workflowId, ruleName);
+    val result = aggregatorRepo.findByWorkflowIdAndRuleName(workflowId, ruleName)
+        .orElseThrow(() -> new EntityNotFoundException(
+            String.format("Result non trovato con workflowId = %s e ruleName = %s", 
+                workflowId, ruleName)));
+    aggregatorRepo.delete(result);
+    log.info("Eliminato definitivamente result {}", result);
     return ResponseEntity.ok().build();
   }
 }

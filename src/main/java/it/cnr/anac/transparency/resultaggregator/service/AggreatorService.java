@@ -16,16 +16,24 @@
  */
 package it.cnr.anac.transparency.resultaggregator.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.zip.GZIPOutputStream;
 
 import org.geojson.FeatureCollection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -46,6 +54,7 @@ public class AggreatorService {
   private final PublicSitesServiceClient pssClient;
   private final ResultServiceClient rsClient;
   private final ResultWithGeoRepository repo;
+  private final ObjectMapper objectMapper;
 
   @Value("${transparency.results-per-page}")
   private int RESULTS_PER_PAGE;
@@ -112,15 +121,38 @@ public class AggreatorService {
     return resultsMap;
   }
 
-  public void save(String workflowId, Optional<String> ruleName, FeatureCollection featureCollection) {
+  public void save(String workflowId, Optional<String> ruleName, FeatureCollection featureCollection) throws JsonProcessingException {
     val currentCollection = repo.findByWorkflowIdAndRuleName(workflowId, ruleName.orElse(null));
     if (!currentCollection.isEmpty()) {
-      repo.deleteByWorkflowIdAndRuleName(workflowId, workflowId);
+      repo.deleteByWorkflowIdAndRuleName(workflowId, ruleName.orElse(null));
     }
     val resultWithGeo = new ResultWithGeo();
     resultWithGeo.setWorkflowId(workflowId);
     resultWithGeo.setRuleName(ruleName.orElse(null));
-    resultWithGeo.setGeoJson(featureCollection.toString().getBytes());
+    resultWithGeo.setGeoJson(toJson(featureCollection));
     repo.save(resultWithGeo);
+  }
+
+  public byte[] toJson(FeatureCollection featureCollection) throws JsonProcessingException {
+    return objectMapper.writeValueAsBytes(featureCollection);
+  }
+  
+  private static final int BUFFER_SIZE = 512;
+
+  public void gzip(InputStream is, OutputStream os) throws IOException {
+      GZIPOutputStream gzipOs = new GZIPOutputStream(os);
+      byte[] buffer = new byte[BUFFER_SIZE];
+      int bytesRead = 0;
+      while ((bytesRead = is.read(buffer)) > -1) {
+          gzipOs.write(buffer, 0, bytesRead);
+      }
+      gzipOs.close();
+  }
+
+  public byte[] gzip(byte[] byteArray) throws IOException {
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    gzip(new ByteArrayInputStream(byteArray), os);
+    byte[] compressed = os.toByteArray();
+    return compressed;
   }
 }

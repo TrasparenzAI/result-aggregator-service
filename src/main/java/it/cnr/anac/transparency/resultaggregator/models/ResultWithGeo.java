@@ -23,6 +23,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -34,7 +35,9 @@ import lombok.ToString;
 @ToString
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "results_with_geo")
+@Table(
+    name = "results_with_geo", 
+    uniqueConstraints = { @UniqueConstraint(columnNames = { "workflowId", "ruleName" }) })
 @Entity
 public class ResultWithGeo extends MutableModel {
 
