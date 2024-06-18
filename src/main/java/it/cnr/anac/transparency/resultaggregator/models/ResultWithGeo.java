@@ -16,9 +16,14 @@
  */
 package it.cnr.anac.transparency.resultaggregator.models;
 
+import java.sql.Types;
+
+import org.hibernate.annotations.JdbcTypeCode;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -30,7 +35,9 @@ import lombok.ToString;
 @ToString
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "results_with_geo")
+@Table(
+    name = "results_with_geo", 
+    uniqueConstraints = { @UniqueConstraint(columnNames = { "workflowId", "ruleName" }) })
 @Entity
 public class ResultWithGeo extends MutableModel {
 
@@ -39,7 +46,10 @@ public class ResultWithGeo extends MutableModel {
   // "6d7e4bd7-a890-439d-9dc7-f9f3f515d8b5"
   private String workflowId;
 
+  private String ruleName;
+
   @Lob
+  @JdbcTypeCode(Types.VARBINARY)
   private byte[] geoJson;
 
 }

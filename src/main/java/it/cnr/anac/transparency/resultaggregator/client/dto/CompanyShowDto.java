@@ -14,18 +14,28 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.resultaggregator;
+package it.cnr.anac.transparency.resultaggregator.client.dto;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import lombok.Data;
+import lombok.ToString;
 
-@EnableFeignClients
-@SpringBootApplication
-public class ResultAggregatorApplication {
+/**
+ * Data transfer object per le informazioni sulle Company.
+ *
+ */
+@ToString
+@Data
+public class CompanyShowDto {
 
-  public static void main(String[] args) {
-    SpringApplication.run(ResultAggregatorApplication.class, args);
-  }
+  private Long idIpa;
+  private String sorgente;
 
+  private String codiceIpa;
+  private String codiceCategoria;
+  private String codiceFiscaleEnte;
+  private String denominazioneEnte;
+  private String tipologia;
+  private String codiceNatura;
+  private String acronimo;
+  private String sitoIstituzionale;
 }

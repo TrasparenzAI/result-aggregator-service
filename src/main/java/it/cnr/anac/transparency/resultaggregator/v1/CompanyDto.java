@@ -14,18 +14,30 @@
  *     You should have received a copy of the GNU Affero General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package it.cnr.anac.transparency.resultaggregator;
+package it.cnr.anac.transparency.resultaggregator.v1;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import java.util.HashMap;
+import java.util.Map;
 
-@EnableFeignClients
-@SpringBootApplication
-public class ResultAggregatorApplication {
+import lombok.Builder;
+import lombok.Data;
 
-  public static void main(String[] args) {
-    SpringApplication.run(ResultAggregatorApplication.class, args);
+@Builder
+@Data
+public class CompanyDto {
+
+  private String denominazioneEnte;
+  private String codiceIpa;
+  private String codiceFiscaleEnte;
+  @Builder.Default
+  private Map<String, Integer> validazioni = new HashMap<>();
+
+  public static CompanyDto build(Map<String, String> attributeMap) {
+    return CompanyDto.builder()
+      .denominazioneEnte(attributeMap.getOrDefault(attributeMap.get("denominazioneEnte"), null))
+      .codiceIpa(attributeMap.getOrDefault(attributeMap.get("codiceIpa"), null))
+      .codiceFiscaleEnte(attributeMap.getOrDefault(attributeMap.get("codiceFiscaleEnte"), null))
+      .build();
+    
   }
-
 }
