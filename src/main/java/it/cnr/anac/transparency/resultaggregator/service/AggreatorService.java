@@ -22,11 +22,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.geojson.FeatureCollection;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -34,7 +38,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -62,33 +65,67 @@ public class AggreatorService {
   @Value("${transparency.results-default-rule-name}")
   private String DEFAULT_RULE_NAME;
 
-  public FeatureCollection aggregatedFeatureCollection(String workflowId, Optional<String> ruleName) {
-    log.info("Sto per prelevare le features dal public-site-service");
+  public Set<String> getRules(List<ResultShowDto> results) {
+    return results.stream().map(r -> r.getRuleName()).collect(Collectors.toSet());
+  }
+
+  public Map<String, FeatureCollection> aggregatedFeatureCollections(String workflowId) {
+    val featureCollections = Maps.<String, FeatureCollection>newHashMap();
+    log.debug("Sto per prelevare le features dal public-site-service");
+    val featureCollection = pssClient.geoJson();
+    log.info("Prelevate {} features dal public-site-service", featureCollection.getFeatures().size());
+
+    List<ResultShowDto> results = getResults(workflowId, Optional.empty());
+    log.info("Prelevati {} risultati per workflowId = {}", results.size(), workflowId);
+
+    val rules = getRules(results);
+    rules.forEach(ruleName -> {
+      log.debug("Processo i dati della regola {}", ruleName);
+      val ruleResults = results.stream().filter(r -> r.getRuleName().equals(ruleName)).collect(Collectors.toList());
+      val ruleFeatureCollection = SerializationUtils.clone(featureCollection);
+      featureCollections.put(ruleName, aggregatedFeatureCollection(workflowId, ruleFeatureCollection, ruleResults));
+      log.info("Aggiunta la featureCollection per workflowId = {}, regola {}", workflowId, ruleName);
+    });
+    return featureCollections;
+  }
+
+  public FeatureCollection aggregatedFeatureCollection(
+      String workflowId, Optional<String> ruleName) {
+    log.debug("Sto per prelevare le features dal public-site-service");
     val featureCollection = pssClient.geoJson();
     log.info("Prelevate {} features dal public-site-service", featureCollection.getFeatures().size());
 
     List<ResultShowDto> results = getResults(workflowId, ruleName);
-    log.info("Prelevati {} risultati per workflowId = {}, ruleName = {}", results.size(), workflowId, ruleName);
+    log.info("Prelevati {} risultati per workflowId = {}, ruleName = {}", 
+        results.size(), workflowId, ruleName);
+
+    return aggregatedFeatureCollection(workflowId, featureCollection, results);
+  }
+
+  public FeatureCollection aggregatedFeatureCollection(
+      String workflowId, 
+      FeatureCollection featureCollection, List<ResultShowDto> results) {
 
     //Risultati indicizzati per codiceIpa
     Map<String, List<ResultShowDto>> resultsMap = getResultsMap(results);
 
+    log.info("resultMap.keys() = {}", resultsMap.keySet());
     featureCollection.forEach(feature -> {
       @SuppressWarnings("unchecked")
       ArrayList<Map<String, Object>> companies = 
       (ArrayList<Map<String, Object>>) feature.getProperties().get("companies");
-      companies.stream().forEach(company -> {
+      for (Map<String, Object> company : companies) {
         List<ResultShowDto> companyResults = resultsMap.get(company.get("codiceIpa"));
         if (companyResults != null) {
-          val validazioniBuilder = ImmutableMap.<String, Integer>builder();
+          val validazioniBuilder = new HashMap<String, Integer>();
           companyResults.forEach(r -> {
             validazioniBuilder.put(r.getRuleName(), r.getStatus());
           });
-          company.put("validazioni", validazioniBuilder.build());
+          company.put("validazioni", validazioniBuilder);
         } else {
-          log.warn("Risultati di validazione per codiceIpa = {} non trovati", company.get("codiceIpa"));
+          log.info("Risultati di validazione per codiceIpa = {} non trovati", company.get("codiceIpa"));
         }
-      });
+      }
     });
 
     return featureCollection;
@@ -110,7 +147,7 @@ public class AggreatorService {
   }
 
   private Map<String, List<ResultShowDto>> getResultsMap(List<ResultShowDto> results) {
-    Map<String, List<ResultShowDto>> resultsMap = Maps.newHashMap();
+    Map<String, List<ResultShowDto>> resultsMap = new HashMap<>();
     results.stream().forEach(result -> {
       if (resultsMap.containsKey(result.getCodiceIpa())) {
         resultsMap.get(result.getCodiceIpa()).add(result);
@@ -136,17 +173,17 @@ public class AggreatorService {
   public byte[] toJson(FeatureCollection featureCollection) throws JsonProcessingException {
     return objectMapper.writeValueAsBytes(featureCollection);
   }
-  
+
   private static final int BUFFER_SIZE = 512;
 
   public void gzip(InputStream is, OutputStream os) throws IOException {
-      GZIPOutputStream gzipOs = new GZIPOutputStream(os);
-      byte[] buffer = new byte[BUFFER_SIZE];
-      int bytesRead = 0;
-      while ((bytesRead = is.read(buffer)) > -1) {
-          gzipOs.write(buffer, 0, bytesRead);
-      }
-      gzipOs.close();
+    GZIPOutputStream gzipOs = new GZIPOutputStream(os);
+    byte[] buffer = new byte[BUFFER_SIZE];
+    int bytesRead = 0;
+    while ((bytesRead = is.read(buffer)) > -1) {
+      gzipOs.write(buffer, 0, bytesRead);
+    }
+    gzipOs.close();
   }
 
   public byte[] gzip(byte[] byteArray) throws IOException {
