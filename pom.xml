@@ -19,6 +19,7 @@
 		<springdoc-openapi.version>2.3.0</springdoc-openapi.version>
 		<geojson-jackson.version>1.14</geojson-jackson.version>
 		<guava.version>33.2.1-jre</guava.version>
+		<jib.maven-plugin.version>3.4.0</jib.maven-plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -92,6 +93,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -117,6 +123,18 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>${jib.maven-plugin.version}</version>
+				<configuration>
+					<from><image>eclipse-temurin:21-jre-ubi9-minimal@sha256:7d3aa9fc5699a06fbcd91150c48040d7b3b6b1e6c0b1c937faab3d7a8e7952a7</image></from>
+					<container>
+						<creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+						<mainClass>it.cnr.anac.transparency.resultaggregator.ResultAggregatorApplication</mainClass>
+					</container>
 				</configuration>
 			</plugin>
 		</plugins>
