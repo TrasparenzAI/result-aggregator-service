@@ -43,6 +43,8 @@ public interface ResultWithGeoRepository extends CrudRepository<ResultWithGeo, L
 
   Optional<ResultWithGeo> findByWorkflowIdAndRuleName(String workflowId, String ruleName);
   
+  Optional<ResultWithGeo> findByWorkflowId(String workflowId);
+
   @Transactional
   Long deleteByWorkflowIdAndRuleName(String workflowId, String ruleName); 
 
