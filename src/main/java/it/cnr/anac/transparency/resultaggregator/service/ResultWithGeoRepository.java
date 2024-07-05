@@ -16,6 +16,7 @@
  */
 package it.cnr.anac.transparency.resultaggregator.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
@@ -42,8 +43,8 @@ import jakarta.transaction.Transactional;
 public interface ResultWithGeoRepository extends CrudRepository<ResultWithGeo, Long>{
 
   Optional<ResultWithGeo> findByWorkflowIdAndRuleName(String workflowId, String ruleName);
-  
-  Optional<ResultWithGeo> findByWorkflowId(String workflowId);
+
+  List<ResultWithGeo> findByWorkflowId(String workflowId);
 
   @Transactional
   Long deleteByWorkflowIdAndRuleName(String workflowId, String ruleName); 

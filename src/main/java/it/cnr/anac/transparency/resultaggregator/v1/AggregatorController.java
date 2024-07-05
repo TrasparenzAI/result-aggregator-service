@@ -39,7 +39,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import it.cnr.anac.transparency.resultaggregator.models.ResultWithGeo;
 import it.cnr.anac.transparency.resultaggregator.service.AggreatorService;
 import it.cnr.anac.transparency.resultaggregator.service.ResultWithGeoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -151,19 +150,24 @@ public class AggregatorController {
       @RequestParam("workflowId") String workflowId, 
       @RequestParam("ruleName") Optional<String> ruleName) {
     log.debug("ResultController::delete by workflowId {} and ruleName {}", workflowId, ruleName);
-    ResultWithGeo result = null;
     if (ruleName.isPresent()) {
-      result = aggregatorRepo.findByWorkflowIdAndRuleName(workflowId, ruleName.get())
+      val result = aggregatorRepo.findByWorkflowIdAndRuleName(workflowId, ruleName.get())
           .orElseThrow(() -> new EntityNotFoundException(
               String.format("Result non trovato con workflowId = %s e ruleName = %s", 
                   workflowId, ruleName)));
+      aggregatorRepo.delete(result);
+      log.info("Eliminato definitivamente result {}", result);
     } else {
-      result = aggregatorRepo.findByWorkflowId(workflowId)
-          .orElseThrow(() -> new EntityNotFoundException(
-              String.format("Result non trovato con workflowId = %s", workflowId)));
+      val results = aggregatorRepo.findByWorkflowId(workflowId);
+      if (results.isEmpty()) {
+        log.info("Nessun result trovato con workflowId = {}", workflowId);
+      } else {
+        results.stream().forEach(result -> {
+          aggregatorRepo.delete(result);
+          log.info("Eliminato definitivamente result {}", result);
+        });
+      }
     }
-    aggregatorRepo.delete(result);
-    log.info("Eliminato definitivamente result {}", result);
     return ResponseEntity.ok().build();
   }
 }
