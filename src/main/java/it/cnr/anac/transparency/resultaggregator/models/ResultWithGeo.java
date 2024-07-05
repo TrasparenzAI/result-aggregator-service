@@ -32,7 +32,7 @@ import lombok.ToString;
  * Entity che rappresenta il risultato di un controllo completo su un insieme di siti pubblici,
  * con i dati di validazione riportati in un geoJson con la geolocalizzazione degli indirizzi.
  */
-@ToString
+@ToString(exclude = {"geoJson"})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Table(
