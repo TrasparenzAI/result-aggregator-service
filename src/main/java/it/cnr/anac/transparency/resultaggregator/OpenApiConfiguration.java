@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
     info = @Info(title = "Transparency Results Aggregator Service", 
-    version = "0.0.2", 
+    version = "0.0.3", 
     description = "Transparency Results Aggregator Service si occupa di aggregare i risultati delle verifiche di conformità "
         + "completandoli con informazioni prelevate da altri servizi."),
     servers = {
