@@ -31,7 +31,7 @@ import it.cnr.anac.transparency.resultaggregator.client.dto.ResultShowDto;
 @FeignClient(name = "result-service-client", url = "${transparency.result-service.url}")
 public interface ResultServiceClient {
 
-  @GetMapping("/v1/results?noCache=true")
+  @GetMapping("/v1/results?noCache=true&sort=id")
   abstract Page<ResultShowDto> results(
       @RequestParam(name="workflowId") String workflowId, 
       @RequestParam(name="ruleName") String ruleName,
