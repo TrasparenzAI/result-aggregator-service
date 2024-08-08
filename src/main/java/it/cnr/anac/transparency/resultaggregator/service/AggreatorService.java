@@ -21,12 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
@@ -66,25 +61,25 @@ public class AggreatorService {
   private String DEFAULT_RULE_NAME;
 
   public Set<String> getRules(List<ResultShowDto> results) {
-    return results.stream().map(r -> r.getRuleName()).collect(Collectors.toSet());
+    return results.stream().filter(r -> !r.getRuleName().contains("child")).map(r -> r.getRuleName()).collect(Collectors.toSet());
   }
 
-  public Map<String, FeatureCollection> aggregatedFeatureCollections(String workflowId) {
+  public Map<String, FeatureCollection> aggregatedFeatureCollections(String workflowId, Optional<String> ruleName) {
     val featureCollections = Maps.<String, FeatureCollection>newHashMap();
     log.debug("Sto per prelevare le features dal public-site-service");
     val featureCollection = pssClient.geoJson();
     log.info("Prelevate {} features dal public-site-service", featureCollection.getFeatures().size());
 
-    List<ResultShowDto> results = getResults(workflowId, Optional.empty());
+    List<ResultShowDto> results = getResults(workflowId, ruleName);
     log.info("Prelevati {} risultati per workflowId = {}", results.size(), workflowId);
 
     val rules = getRules(results);
-    rules.forEach(ruleName -> {
-      log.debug("Processo i dati della regola {}", ruleName);
-      val ruleResults = results.stream().filter(r -> r.getRuleName().equals(ruleName)).collect(Collectors.toList());
+    rules.forEach(name -> {
+      val ruleResults = results.stream().filter(r -> r.getRuleName().equals(name)).collect(Collectors.toList());
+      log.info("Processo i dati della regola {} numero di risultati trovati {}", name, ruleResults.size());
       val ruleFeatureCollection = SerializationUtils.clone(featureCollection);
-      featureCollections.put(ruleName, aggregatedFeatureCollection(workflowId, ruleFeatureCollection, ruleResults));
-      log.info("Aggiunta la featureCollection per workflowId = {}, regola {}", workflowId, ruleName);
+      featureCollections.put(name, aggregatedFeatureCollection(workflowId, ruleFeatureCollection, ruleResults, Optional.of(name)));
+      log.info("Aggiunta la featureCollection per workflowId = {}, regola {}", workflowId, name);
     });
     return featureCollections;
   }
@@ -99,17 +94,18 @@ public class AggreatorService {
     log.info("Prelevati {} risultati per workflowId = {}, ruleName = {}", 
         results.size(), workflowId, ruleName);
 
-    return aggregatedFeatureCollection(workflowId, featureCollection, results);
+    return aggregatedFeatureCollection(workflowId, featureCollection, results, ruleName);
   }
 
   public FeatureCollection aggregatedFeatureCollection(
       String workflowId, 
-      FeatureCollection featureCollection, List<ResultShowDto> results) {
+      FeatureCollection featureCollection, List<ResultShowDto> results, Optional<String> ruleName) {
 
     //Risultati indicizzati per codiceIpa
-    Map<String, List<ResultShowDto>> resultsMap = getResultsMap(results);
+    Map<String, List<ResultShowDto>> resultsMap = results.stream()
+            .collect(Collectors.groupingBy(resultShowDto -> resultShowDto.getCodiceIpa()));
 
-    log.info("resultMap.keys() = {}", resultsMap.keySet());
+    log.trace("resultMap.keys() = {}", resultsMap.keySet());
     featureCollection.forEach(feature -> {
       @SuppressWarnings("unchecked")
       ArrayList<Map<String, Object>> companies = 
@@ -123,7 +119,7 @@ public class AggreatorService {
           });
           company.put("validazioni", validazioniBuilder);
         } else {
-          log.info("Risultati di validazione per codiceIpa = {} non trovati", company.get("codiceIpa"));
+          log.trace("Risultati di validazione per codiceIpa = {} e regola {} non trovati", company.get("codiceIpa"), ruleName.orElse(""));
         }
       }
     });
@@ -146,22 +142,11 @@ public class AggreatorService {
     return results;
   }
 
-  private Map<String, List<ResultShowDto>> getResultsMap(List<ResultShowDto> results) {
-    Map<String, List<ResultShowDto>> resultsMap = new HashMap<>();
-    results.stream().forEach(result -> {
-      if (resultsMap.containsKey(result.getCodiceIpa())) {
-        resultsMap.get(result.getCodiceIpa()).add(result);
-      } else {
-        resultsMap.put(result.getCodiceIpa(), Lists.newArrayList(result));
-      }
-    });
-    return resultsMap;
-  }
-
   public void save(String workflowId, Optional<String> ruleName, FeatureCollection featureCollection) throws JsonProcessingException {
     val currentCollection = repo.findByWorkflowIdAndRuleName(workflowId, ruleName.orElse(null));
     if (!currentCollection.isEmpty()) {
       repo.deleteByWorkflowIdAndRuleName(workflowId, ruleName.orElse(null));
+      log.info("Cancellato risultato aggregato con per flusso {} e regola {}", workflowId, ruleName);
     }
     val resultWithGeo = new ResultWithGeo();
     resultWithGeo.setWorkflowId(workflowId);

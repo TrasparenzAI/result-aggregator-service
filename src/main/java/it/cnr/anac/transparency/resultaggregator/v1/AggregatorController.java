@@ -114,10 +114,11 @@ public class AggregatorController {
   })
   @PutMapping(ApiRoutes.CREATE + "/geojson")
   public ResponseEntity<Void> create(
-      @RequestParam("workflowId") String workflowId) throws JsonProcessingException {
-    val featureCollections = aggregatorService.aggregatedFeatureCollections(workflowId);
-    for (String ruleName : featureCollections.keySet()) {
-      aggregatorService.save(workflowId, Optional.of(ruleName), featureCollections.get(ruleName));
+      @RequestParam("workflowId") String workflowId,
+      @RequestParam("ruleName") Optional<String> ruleName) throws JsonProcessingException {
+    val featureCollections = aggregatorService.aggregatedFeatureCollections(workflowId, ruleName);
+    for (String featureRuleName : featureCollections.keySet()) {
+      aggregatorService.save(workflowId, Optional.of(featureRuleName), featureCollections.get(featureRuleName));
     }
     return ResponseEntity.ok().build();
   }
@@ -158,12 +159,12 @@ public class AggregatorController {
       aggregatorRepo.delete(result);
       log.info("Eliminato definitivamente result {}", result);
     } else {
-      val results = aggregatorRepo.findByWorkflowId(workflowId);
+      val results = aggregatorRepo.findIdsByWorkflowId(workflowId);
       if (results.isEmpty()) {
         log.info("Nessun result trovato con workflowId = {}", workflowId);
       } else {
         results.stream().forEach(result -> {
-          aggregatorRepo.delete(result);
+          aggregatorRepo.deleteById(result);
           log.info("Eliminato definitivamente result {}", result);
         });
       }
