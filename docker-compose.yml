@@ -1,0 +1,49 @@
+#########################################################################
+# Result Service                                                        #
+# Configurazione per l'avvio di Result Aggregator Service               #
+#########################################################################
+
+services:
+  result-service:
+    image: ghcr.io/cnr-anac/result-aggregator-service:latest
+    container_name: result-service
+    links:
+      - postgres:postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 8081:8080
+    environment:
+    - spring.docker.compose.enabled=false
+    - spring.datasource.url=jdbc:postgresql://${DB_HOST}:${DB_PORT:-5432}/${DB_NAME}
+    - spring.datasource.username=${DB_USER}
+    - spring.datasource.password=${DB_PASSWORD}
+    #- server.servlet.context-path=/result-aggregator-service
+    - spring.cloud.openfeign.client.config.default.readTimeout=3600000
+    - transparency.public-sites-service.url=${TRANSPARENCY_PUBLIC_SITE_URL}
+    - transparency.result-service.url=${TRANSPARENCY_RESULT_SERVICE_URL}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+
+  postgres:
+    image: 'postgres:16'
+    shm_size: 4gb
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+    ports:
+      - '5432'
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    healthcheck:
+      test: timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/5432'
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
