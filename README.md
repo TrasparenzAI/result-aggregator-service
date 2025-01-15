@@ -1,7 +1,7 @@
 # Transparency Result Aggregator Service
 ## Transparency Result Aggregator - REST Services
 
-[![Supported JVM Versions](https://img.shields.io/badge/JVM-11-brightgreen.svg?style=for-the-badge&logo=Java)](https://openjdk.java.net/install/)
+[![Supported JVM Versions](https://img.shields.io/badge/JVM-21-brightgreen.svg?style=for-the-badge&logo=Java)](https://openjdk.java.net/install/)
 
 Transparency Result Aggregator Service è parte della suite di servizi per la verifica delle informazioni sulla
 Trasparenza dei siti web delle Pubbliche amministrazioni italiane.
@@ -21,6 +21,40 @@ Transparency Result Aggregator Service fornisce alcuni servizi REST utilizzabili
 
 II servizi REST sono documentati tramite OpenAPI consultabile all'indirizzo /swagger-ui/index.html.
 L'OpenAPI del servizio di devel è disponibile all'indirizzo https://dica33.ba.cnr.it/result-aggregator-service/swagger-ui/index.html.
+
+Questo servizio ha due dipendenze per funzionare:
+ - il [Result Service](https://github.com/cnr-anac/result-service) da cui leggere le info sulle verifiche
+ - il [Public Site Service](https://github.com/cnr-anac/public-sites-service) da cui prelevare le info geografiche delle PA
+
+L'indirizzo di entrambi questi servizi è da configura nel file [application.properties](https://github.com/cnr-anac/result-aggregator-service/blob/main/src/main/resources/application.properties) oppure tramite variabili d'ambiente
+se avviato tramite Docker.
+
+# <img src="https://www.docker.com/wp-content/uploads/2021/10/Moby-logo-sm.png" width=80> Startup
+
+#### _Per avviare una istanza del result-service con postgres locale_
+
+Il result-service può essere facilmente installato via docker compose su server Linux utilizzando il file 
+docker-compose.yml presente in questo repository.
+
+Accertati di aver installato docker e il plugin di docker `compose` dove vuoi installare il result-service e in seguito
+esegui il comando successivo per un setup di esempio.
+
+```
+curl -fsSL https://raw.githubusercontent.com/cnr-anac/result-aggregator-service/main/first-setup.sh -o first-setup.sh && sh first-setup.sh
+```
+
+Collegarsi a http://localhost:8082/swagger-ui/index.html per visualizzare la documentazione degli endpoint REST presenti nel servizio.
+
+**Attenzione**: se il public-site-service o il result-service non sono avviati sullo stesso server tramite docker è necessario
+configurare l'url a cui rispondono, modificando le variabili d'ambiente *TRANSPARENCY_PUBLIC_SITE_URL* e *TRANSPARENCY_RESULT_SERVICE_URL* nel file *.env* e riavviare i container.
+
+## Backups
+
+Il servizio mantiene le informazioni relative alla configurazione nel db postgres, quindi è opportuno fare il backup
+del database a scadenza regolare. Nel repository è presente un file di esempio [backups.sh](https://github.com/cnr-anac/result-aggregator-service/blob/main/backups.sh) per effettuare i backup.
+
+All'interno dello script backups.sh è necessario impostare il corretto path dove si trova il docker-compose.yml del progetto, tramite la
+variabile `SERVICE_DIR`.
 
 ## 👏 Come Contribuire 
 
