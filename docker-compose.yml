@@ -4,9 +4,9 @@
 #########################################################################
 
 services:
-  result-service:
+  result-aggregator-service:
     image: ghcr.io/cnr-anac/result-aggregator-service:latest
-    container_name: result-service
+    container_name: result-aggregator-service
     links:
       - postgres:postgres
     depends_on:
@@ -46,4 +46,3 @@ services:
       timeout: 5s
       retries: 12
     restart: unless-stopped
-

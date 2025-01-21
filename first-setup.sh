@@ -31,11 +31,5 @@ curl https://raw.githubusercontent.com/cnr-anac/result-aggregator-service/main/.
 DB_PASSWORD=`tr -dc A-Za-z0-9 < /dev/urandom | head -c 16 ; echo`
 sed "s|DB_PASSWORD=|DB_PASSWORD=${DB_PASSWORD}|g" -i .env
 
-# Avvio del postgres e creazione del DB vuoto configse
-docker compose up -d postgres
-# Attesa che il container docker sia pronto
-sleep 10
-docker compose exec postgres createdb -U cnr-anac aggregated-results
-
 # Avvio del config-service che si occuperà anche di popolare il db 
 docker compose up -d

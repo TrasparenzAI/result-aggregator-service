@@ -33,17 +33,17 @@ se avviato tramite Docker.
 
 #### _Per avviare una istanza del result-service con postgres locale_
 
-Il result-service può essere facilmente installato via docker compose su server Linux utilizzando il file 
+Il result-aggregator-service può essere facilmente installato via docker compose su server Linux utilizzando il file 
 docker-compose.yml presente in questo repository.
 
-Accertati di aver installato docker e il plugin di docker `compose` dove vuoi installare il result-service e in seguito
-esegui il comando successivo per un setup di esempio.
+Accertati di aver installato docker e il plugin di docker `compose` dove vuoi installare il result-aggregator-service e 
+in seguito esegui il comando successivo per un setup di esempio.
 
 ```
 curl -fsSL https://raw.githubusercontent.com/cnr-anac/result-aggregator-service/main/first-setup.sh -o first-setup.sh && sh first-setup.sh
 ```
 
-Collegarsi a http://localhost:8082/swagger-ui/index.html per visualizzare la documentazione degli endpoint REST presenti nel servizio.
+Collegarsi a http://localhost:8081/swagger-ui/index.html per visualizzare la documentazione degli endpoint REST presenti nel servizio.
 
 **Attenzione**: se il public-site-service o il result-service non sono avviati sullo stesso server tramite docker è necessario
 configurare l'url a cui rispondono, modificando le variabili d'ambiente *TRANSPARENCY_PUBLIC_SITE_URL* e *TRANSPARENCY_RESULT_SERVICE_URL* nel file *.env* e riavviare i container.
@@ -53,8 +53,7 @@ configurare l'url a cui rispondono, modificando le variabili d'ambiente *TRANSPA
 Il servizio mantiene le informazioni relative alla configurazione nel db postgres, quindi è opportuno fare il backup
 del database a scadenza regolare. Nel repository è presente un file di esempio [backups.sh](https://github.com/cnr-anac/result-aggregator-service/blob/main/backups.sh) per effettuare i backup.
 
-All'interno dello script backups.sh è necessario impostare il corretto path dove si trova il docker-compose.yml del progetto, tramite la
-variabile `SERVICE_DIR`.
+All'interno dello script backups.sh è necessario impostare il corretto path dove si trova il docker-compose.yml del progetto, tramite la variabile `SERVICE_DIR`.
 
 ## 👏 Come Contribuire 
 
