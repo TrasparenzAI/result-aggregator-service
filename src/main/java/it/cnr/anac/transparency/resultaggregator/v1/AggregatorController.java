@@ -147,17 +147,19 @@ public class AggregatorController {
       @ApiResponse(responseCode = "200", description = "Risultato eliminato correttamente")
   })
   @DeleteMapping(ApiRoutes.LIST + "/geojson")
-  ResponseEntity<Void> deleteByWorkflowIdAndRuleName(
+  ResponseEntity<Long> deleteByWorkflowIdAndRuleName(
       @RequestParam("workflowId") String workflowId, 
       @RequestParam("ruleName") Optional<String> ruleName) {
-    log.debug("ResultController::delete by workflowId {} and ruleName {}", workflowId, ruleName);
+    log.info("ResultController::delete by workflowId {} and ruleName {}", workflowId, ruleName);
+    long deleted = 0;
     if (ruleName.isPresent()) {
       val result = aggregatorRepo.findByWorkflowIdAndRuleName(workflowId, ruleName.get())
           .orElseThrow(() -> new EntityNotFoundException(
               String.format("Result non trovato con workflowId = %s e ruleName = %s", 
                   workflowId, ruleName)));
       aggregatorRepo.delete(result);
-      log.info("Eliminato definitivamente result {}", result);
+      deleted = 1;
+      log.info("Eliminato definitivamente risultato con id = {}", result.getId());
     } else {
       val results = aggregatorRepo.findIdsByWorkflowId(workflowId);
       if (results.isEmpty()) {
@@ -167,8 +169,9 @@ public class AggregatorController {
           aggregatorRepo.deleteById(result);
           log.info("Eliminato definitivamente result {}", result);
         });
+        deleted = results.size();
       }
     }
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(deleted);
   }
 }
