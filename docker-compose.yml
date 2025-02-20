@@ -23,6 +23,9 @@ services:
     - spring.cloud.openfeign.client.config.default.readTimeout=3600000
     - transparency.public-sites-service.url=${TRANSPARENCY_PUBLIC_SITE_URL}
     - transparency.result-service.url=${TRANSPARENCY_RESULT_SERVICE_URL}
+    - spring.security.oauth2.resourceserver.jwt.issuer-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai
+    - spring.security.oauth2.resourceserver.jwt.jwk-set-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai/protocol/openid-connect/certs
+
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
