@@ -38,6 +38,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.cnr.anac.transparency.resultaggregator.service.AggreatorService;
 import it.cnr.anac.transparency.resultaggregator.service.ResultWithGeoRepository;
@@ -48,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+@SecurityRequirement(name = "bearer_authentication")
 @Tag(
     name = "Aggregator Controller", 
     description = "Gestione delle informazioni dei risultati aggregati di validazione dei siti delle PA")

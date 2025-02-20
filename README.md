@@ -29,6 +29,21 @@ Questo servizio ha due dipendenze per funzionare:
 L'indirizzo di entrambi questi servizi è da configura nel file [application.properties](https://github.com/cnr-anac/result-aggregator-service/blob/main/src/main/resources/application.properties) oppure tramite variabili d'ambiente
 se avviato tramite Docker.
 
+### Sicurezza
+
+Gli endpoint REST di questo servizio sono protetti tramite autenticazione OAuth con Bearer Token.
+E' necessario configurare l'idp da utilizzare per validare i token OAuth tramite le due proprietà
+mostrare nell'esempio seguente:
+
+```
+    - spring.security.oauth2.resourceserver.jwt.issuer-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai
+    - spring.security.oauth2.resourceserver.jwt.jwk-set-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai/protocol/openid-connect/certs
+```
+
+Per l'accesso in HTTP GET all'API è sufficiente essere autenticati, per gli endpoint accessibili
+con PUT/POST/DELETE è necessario oltre che essere autenticati che il token OAuth contenga un 
+role ADMIN o SUPERUSER.
+
 # <img src="https://www.docker.com/wp-content/uploads/2021/10/Moby-logo-sm.png" width=80> Startup
 
 #### _Per avviare una istanza del result-service con postgres locale_

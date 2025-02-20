@@ -17,7 +17,10 @@
 package it.cnr.anac.transparency.resultaggregator;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,13 +30,20 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
     info = @Info(title = "Transparency Results Aggregator Service", 
-    version = "0.0.3", 
+    version = "0.1.0", 
     description = "Transparency Results Aggregator Service si occupa di aggregare i risultati delle verifiche di conformità "
         + "completandoli con informazioni prelevate da altri servizi."),
     servers = {
         @Server(url = "/result-aggregator-service", description = "Transparency Results Aggregator Service URL"),
         @Server(url = "/", description = "Transparency Results Aggregator Service URL")}
     )
+@SecuritySchemes(value = {
+    @SecurityScheme(
+        name = "bearer_authentication",
+        type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
+        scheme = "bearer")
+})
 public class OpenApiConfiguration {
 
   //Empty class
