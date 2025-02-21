@@ -23,6 +23,16 @@ services:
     - spring.cloud.openfeign.client.config.default.readTimeout=3600000
     - transparency.public-sites-service.url=${TRANSPARENCY_PUBLIC_SITE_URL}
     - transparency.result-service.url=${TRANSPARENCY_RESULT_SERVICE_URL}
+    # Generare un Service Account Oidc con questo client-id, oppure cambiare questo valore
+    - spring.security.oauth2.client.registration.oidc.client-id=result-aggregator
+    # Client Secret da generare nel Identity Provider e impostare qui
+    - spring.security.oauth2.client.registration.oidc.client-secret=client_secret_da_generare
+    # URL dell'issuer OIDC da impostare
+    - spring.security.oauth2.client.provider.oidc.issuer-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai
+    # - spring.security.oauth2.client.registration.oidc.authorization-grant-type=client_credentials #DEFAULT
+    # - spring.security.oauth2.client.registration.oidc.scope=openid #DEFAULT
+    # - spring.security.oauth2.client.registration.oidc.provider=oidc #DEFAULT
+    # Configurazione Autenticazione OAuth2 come Resource Server 
     - spring.security.oauth2.resourceserver.jwt.issuer-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai
     - spring.security.oauth2.resourceserver.jwt.jwk-set-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai/protocol/openid-connect/certs
 
