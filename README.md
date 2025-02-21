@@ -44,6 +44,24 @@ Per l'accesso in HTTP GET all'API è sufficiente essere autenticati, per gli end
 con PUT/POST/DELETE è necessario oltre che essere autenticati che il token OAuth contenga un 
 role ADMIN o SUPERUSER.
 
+Inoltre questo servizio interagisce con il _result_service_ e il _public_site_service_ per prelevare
+i risultati da aggregare.
+
+Per configurare il client REST che accede a questi due servizi è necessario configurare questi 
+parametri nel docker-compose.yml, in particolare verificare client-id, client-secret e issuer-uri.
+
+```
+    # Generare un Service Account Oidc con questo client-id, oppure cambiare questo valore
+    - spring.security.oauth2.client.registration.oidc.client-id=result-aggregator
+    # Client Secret da generare nel Identity Provider e impostare qui
+    - spring.security.oauth2.client.registration.oidc.client-secret=client_secret_da_generare
+    # URL dell'issuer OIDC da impostare
+    - spring.security.oauth2.client.provider.oidc.issuer-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai
+    # - spring.security.oauth2.client.registration.oidc.authorization-grant-type=client_credentials #DEFAULT
+    # - spring.security.oauth2.client.registration.oidc.scope=openid #DEFAULT
+    # - spring.security.oauth2.client.registration.oidc.provider=oidc #DEFAULT
+```
+
 # <img src="https://www.docker.com/wp-content/uploads/2021/10/Moby-logo-sm.png" width=80> Startup
 
 #### _Per avviare una istanza del result-service con postgres locale_
