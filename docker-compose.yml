@@ -26,7 +26,7 @@ services:
     # Generare un Service Account Oidc con questo client-id, oppure cambiare questo valore
     - spring.security.oauth2.client.registration.oidc.client-id=result-aggregator
     # Client Secret da generare nel Identity Provider e impostare qui
-    - spring.security.oauth2.client.registration.oidc.client-secret=client_secret_da_generare
+    - spring.security.oauth2.client.registration.oidc.client-secret=${OIDC_CLIENT_SECRET}
     # URL dell'issuer OIDC da impostare
     - spring.security.oauth2.client.provider.oidc.issuer-uri=https://dica33.ba.cnr.it/keycloak/realms/trasparenzai
     # - spring.security.oauth2.client.registration.oidc.authorization-grant-type=client_credentials #DEFAULT
