@@ -8,7 +8,7 @@ env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
+  # IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -25,6 +25,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - name: lowercase github.repository
+        run: |
+          echo "IMAGE_NAME=`echo ${{github.repository}} | tr '[:upper:]' '[:lower:]'`" >>${GITHUB_ENV}
       - name: Build Latest Release with Maven
         if: ${{ ! github.event.release }}
         run: mvn --batch-mode --update-snapshots clean compile jib:build

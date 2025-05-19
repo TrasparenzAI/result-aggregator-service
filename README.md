@@ -23,10 +23,10 @@ II servizi REST sono documentati tramite OpenAPI consultabile all'indirizzo /swa
 L'OpenAPI del servizio di devel è disponibile all'indirizzo https://dica33.ba.cnr.it/result-aggregator-service/swagger-ui/index.html.
 
 Questo servizio ha due dipendenze per funzionare:
- - il [Result Service](https://github.com/cnr-anac/result-service) da cui leggere le info sulle verifiche
- - il [Public Site Service](https://github.com/cnr-anac/public-sites-service) da cui prelevare le info geografiche delle PA
+ - il [Result Service](https://github.com/trasparenzai/result-service) da cui leggere le info sulle verifiche
+ - il [Public Site Service](https://github.com/trasparenzai/public-sites-service) da cui prelevare le info geografiche delle PA
 
-L'indirizzo di entrambi questi servizi è da configura nel file [application.properties](https://github.com/cnr-anac/result-aggregator-service/blob/main/src/main/resources/application.properties) oppure tramite variabili d'ambiente
+L'indirizzo di entrambi questi servizi è da configura nel file [application.properties](https://github.com/trasparenzai/result-aggregator-service/blob/main/src/main/resources/application.properties) oppure tramite variabili d'ambiente
 se avviato tramite Docker.
 
 ### Sicurezza
@@ -73,7 +73,7 @@ Accertati di aver installato docker e il plugin di docker `compose` dove vuoi in
 in seguito esegui il comando successivo per un setup di esempio.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/cnr-anac/result-aggregator-service/main/first-setup.sh -o first-setup.sh && sh first-setup.sh
+curl -fsSL https://raw.githubusercontent.com/trasparenzai/result-aggregator-service/main/first-setup.sh -o first-setup.sh && sh first-setup.sh
 ```
 
 Collegarsi a http://localhost:8081/swagger-ui/index.html per visualizzare la documentazione degli endpoint REST presenti nel servizio.
@@ -84,7 +84,7 @@ configurare l'url a cui rispondono, modificando le variabili d'ambiente *TRANSPA
 ## Backups
 
 Il servizio mantiene le informazioni relative alla configurazione nel db postgres, quindi è opportuno fare il backup
-del database a scadenza regolare. Nel repository è presente un file di esempio [backups.sh](https://github.com/cnr-anac/result-aggregator-service/blob/main/backups.sh) per effettuare i backup.
+del database a scadenza regolare. Nel repository è presente un file di esempio [backups.sh](https://github.com/trasparenzai/result-aggregator-service/blob/main/backups.sh) per effettuare i backup.
 
 All'interno dello script backups.sh è necessario impostare il corretto path dove si trova il docker-compose.yml del progetto, tramite la variabile `SERVICE_DIR`.
 
@@ -98,4 +98,4 @@ E' possibile contribuire a questo progetto utilizzando le modalità standard del
 Result Aggregator Service è concesso in licenza GNU AFFERO GENERAL PUBLIC LICENSE, come si trova 
 nel file [LICENSE][l].
 
-[l]: https://github.com/cnr-anac/result-aggregator-service/blob/master/LICENSE
+[l]: https://github.com/trasparenzai/result-aggregator-service/blob/master/LICENSE

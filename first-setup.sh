@@ -24,8 +24,8 @@ command -v docker compose version >/dev/null 2>&1 || { echo >&2 "docker compose 
 mkdir -p $INSTALL_DIR/postgres-data
 cd $INSTALL_DIR
 
-curl https://raw.githubusercontent.com/cnr-anac/result-aggregator-service/main/docker-compose.yml -o docker-compose.yml
-curl https://raw.githubusercontent.com/cnr-anac/result-aggregator-service/main/.env -o .env
+curl https://raw.githubusercontent.com/trasparenzai/result-aggregator-service/main/docker-compose.yml -o docker-compose.yml
+curl https://raw.githubusercontent.com/trasparenzai/result-aggregator-service/main/.env -o .env
 
 # Creazione e impostazione della password di accesso al database
 DB_PASSWORD=`tr -dc A-Za-z0-9 < /dev/urandom | head -c 16 ; echo`
