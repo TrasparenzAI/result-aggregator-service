@@ -5,21 +5,21 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.8</version>
+		<version>4.0.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>it.cnr.anac.transparency</groupId>
 	<artifactId>result-aggregator</artifactId>
-	<version>0.1.1</version>
+	<version>0.2.0</version>
 	<name>result-aggregator</name>
 	<description>Aggregatore di risultati di validazione della trasparenza</description>
 	<properties>
 		<java.version>21</java.version>
-		<spring-cloud.version>2023.0.1</spring-cloud.version>
-		<springdoc-openapi.version>2.3.0</springdoc-openapi.version>
+		<spring-cloud.version>2025.1.1</spring-cloud.version>
+		<springdoc-openapi.version>3.0.3</springdoc-openapi.version>
 		<geojson-jackson.version>1.14</geojson-jackson.version>
-		<guava.version>33.2.1-jre</guava.version>
-		<jib.maven-plugin.version>3.4.0</jib.maven-plugin.version>
+		<guava.version>33.5.0-jre</guava.version>
+		<jib.maven-plugin.version>3.5.1</jib.maven-plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
